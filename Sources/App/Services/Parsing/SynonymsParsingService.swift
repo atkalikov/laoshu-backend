@@ -1,37 +1,37 @@
 import Vapor
 import Queues
-import Foundation
 import LaoshuModels
 
-public protocol ExamplesParsingService: AnyObject {
+protocol SynonymsParsingService: AnyObject {
     var isParsing: Bool { get }
     
-    func parseExamples(
+    func parseSynonyms(
         on context: QueueContext,
         url: URL
     ) -> EventLoopFuture<Void>
 }
 
-final class ExamplesParsingServiceImpl: ExamplesParsingService {
+final class SynonymsParsingServiceImpl: SynonymsParsingService {
     var isParsing: Bool = false
     
-    func parseExamples(
+    func parseSynonyms(
         on context: QueueContext,
         url: URL
     ) -> EventLoopFuture<Void> {
         let promise = context.eventLoop.makePromise(of: Void.self)
         
         isParsing = true
-        
+            
         let parser = context.application
-            .examplesFileParser()
-            .onParsingExamples {
-                let models = $0.map { example in ExampleModel(example: example) }
-                _ = context.application.db.transaction { db in
-                    models.create(on: db)
-                }
+            .synonymsFileParser()
+            .onParsingSynonyms { _ in
+//                let models = $0.map { example in ExampleModel(example: example) }
+//                _ = context.application.db.transaction { db in
+//                    models.create(on: db)
+//                }
             }
             .onParsingComplete { [weak self] in
+                print("Complete parsing synonyms: \($0)")
                 switch $0 {
                 case .success:
                     self?.isParsing = false
@@ -40,7 +40,7 @@ final class ExamplesParsingServiceImpl: ExamplesParsingService {
                     self?.isParsing = false
                     promise.completeWith(.failure(error))
                 }
-            }
+        }
         
         parser.parse(fileAt: url)
         promise.succeed(Void())

@@ -20,12 +20,7 @@ public func configure(_ app: Application) throws {
         ), as: .mysql)
     app.queues.use(.fluent())
     
-    let dictionaryParsingService = DictionaryParsingServiceImpl()
-    let examplesParsingService = ExamplesParsingServiceImpl()
-    let job = ParsingJob(
-        dictionaryParsingService: dictionaryParsingService,
-        examplesParsingService: examplesParsingService
-    )
+    let job = ParsingJob(app.parsingService)
     app.queues.add(job)
     
     try app.autoMigrate().wait()

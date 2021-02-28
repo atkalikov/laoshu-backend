@@ -76,7 +76,8 @@ final class ExamplesFileParserImpl: ExamplesFileParser {
                 do {
                     try process(string: content, counter: counter)
                 } catch {
-                    parsingCompleteAction?(.failure(error))
+                    print("Cant parse: \(error)")
+//                    parsingCompleteAction?(.failure(error))
                     return
                 }
                 counter += 1
@@ -84,7 +85,7 @@ final class ExamplesFileParserImpl: ExamplesFileParser {
                     scanner.currentIndex = index
                 }
                 
-                if examples.count % 10_000 == 0 {
+                if examples.count % 1_000 == 0 {
                     parsingExamplesAction?(examples)
                     examples.removeAll()
                 }

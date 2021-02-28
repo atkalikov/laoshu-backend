@@ -30,6 +30,7 @@ public enum DictionaryFileParserError: Error {
 final class DictionaryFileParserImpl: DictionaryFileParser {
     private let dictionaryDirectivesStrategy: ParsingDictionaryDirectivesStrategy
     private let wordStrategy: ParsingWordStrategy
+    private let logger: Logger
     private var words: [Word] = []
     
     private var parsingDirectivesAction: ((DictionaryDirectives) -> Void)?
@@ -38,10 +39,12 @@ final class DictionaryFileParserImpl: DictionaryFileParser {
     
     init(
         dictionaryDirectivesStrategy: ParsingDictionaryDirectivesStrategy,
-        wordStrategy: ParsingWordStrategy
+        wordStrategy: ParsingWordStrategy,
+        logger: Logger
     ) {
         self.dictionaryDirectivesStrategy = dictionaryDirectivesStrategy
         self.wordStrategy = wordStrategy
+        self.logger = logger
     }
     
     @discardableResult
@@ -83,6 +86,7 @@ final class DictionaryFileParserImpl: DictionaryFileParser {
                 do {
                     try process(string: content, counter: counter)
                 } catch {
+                    logger.error("Parsing error: \(error.localizedDescription)")
                     parsingCompleteAction?(.failure(error))
                     return
                 }
@@ -91,7 +95,7 @@ final class DictionaryFileParserImpl: DictionaryFileParser {
                     scanner.currentIndex = index
                 }
                 
-                if words.count % 10_000 == 0 {
+                if words.count % 100 == 0 {
                     parsingWordsAction?(words)
                     words.removeAll()
                 }
@@ -110,12 +114,14 @@ final class DictionaryFileParserImpl: DictionaryFileParser {
             if let directives = dictionaryDirectivesStrategy.parse(from: string) {
                 parsingDirectivesAction?(directives)
             } else {
+                logger.error("Can't parse dirictories")
                 throw DictionaryFileParserError.cantParseDirectories
             }
         default:
             if let word = wordStrategy.parse(from: string) {
                 words.append(word)
             } else {
+                logger.error("Can't parse word")
                 throw DictionaryFileParserError.cantParseWord
             }
         }
@@ -137,6 +143,10 @@ extension Application {
             wordStrategy = ParsingBRukSStrategy(builder: WordBuilder(), converter: converter)
         }
 
-        return DictionaryFileParserImpl(dictionaryDirectivesStrategy: dictionaryDirectivesStrategy, wordStrategy: wordStrategy)
+        return DictionaryFileParserImpl(
+            dictionaryDirectivesStrategy: dictionaryDirectivesStrategy,
+            wordStrategy: wordStrategy,
+            logger: logger
+        )
     }
 }

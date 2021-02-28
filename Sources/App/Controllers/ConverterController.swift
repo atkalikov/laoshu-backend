@@ -9,6 +9,8 @@ struct ConverterInputModel: Content {
         case bkrs
         case bruks
         case examples
+        case antonyms
+        case synonyms
     }
 }
 

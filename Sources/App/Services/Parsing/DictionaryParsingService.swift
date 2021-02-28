@@ -1,16 +1,8 @@
-//
-//  DictionaryParsingService.swift
-//  Services
-//
-//  Created by Anton Tkalikov on 27.05.2020.
-//  Copyright © 2020 Anton Tkalikov. All rights reserved.
-//
-
 import Vapor
 import Queues
 import LaoshuModels
 
-public protocol DictionaryParsingService: AnyObject {
+protocol DictionaryParsingService: AnyObject {
     var isParsing: Bool { get }
 
     func parseDictionary(
@@ -21,6 +13,12 @@ public protocol DictionaryParsingService: AnyObject {
 }
 
 final class DictionaryParsingServiceImpl: DictionaryParsingService {
+    private let logger: Logger
+    
+    init(logger: Logger) {
+        self.logger = logger
+    }
+    
     var isParsing: Bool = false
     
     func parseDictionary(
@@ -29,24 +27,27 @@ final class DictionaryParsingServiceImpl: DictionaryParsingService {
         type: DictionaryType
     ) -> EventLoopFuture<Void> {
         let promise = context.eventLoop.makePromise(of: Void.self)
+        var futures: [EventLoopFuture<Void>] = []
         
         isParsing = true
 
         let parser = context.application
             .dictionaryFileParser(for: type)
-            .onParsingDirectives { print("Did parse dictionary dirictives: \($0)") }
-            .onParsingWords {
-                let models = $0.map { word in WordModel(word: word) }
-                context.application.db.transaction { db in
-                    models.create(on: db)
-                }
+            .onParsingDirectives { [weak self] in
+                self?.logger.info("Did parse dictionary dirictives: \($0)")
+            }
+            .onParsingWords { words in
+                let future = words
+                    .map { word in WordModel(word: word) }
+                    .create(on: context.application.db)
+                futures.append(future)
             }
             .onParsingComplete { [weak self] in
-                print("Complete parsing dictionary: \($0)")
+                self?.logger.info("Complete parsing dictionary: \($0)")
                 switch $0 {
                 case .success:
                     self?.isParsing = false
-                    promise.completeWith(.success(Void()))
+                    promise.completeWith(futures.flatten(on: context.eventLoop))
                 case .failure(let error):
                     self?.isParsing = false
                     promise.completeWith(.failure(error))
@@ -54,13 +55,6 @@ final class DictionaryParsingServiceImpl: DictionaryParsingService {
         }
 
         parser.parse(fileAt: url)
-        promise.succeed(Void())
         return promise.futureResult
-    }
-}
-
-extension Request {
-    var dictionaryParsingService: DictionaryParsingService {
-        return DictionaryParsingServiceImpl()
     }
 }
