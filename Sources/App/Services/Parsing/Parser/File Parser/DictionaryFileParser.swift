@@ -65,7 +65,7 @@ final class DictionaryFileParserImpl: DictionaryFileParser {
     func parse(fileAt path: URL) {
         var string: String
         do {
-            string = try String(contentsOf: path, encoding: .utf8)
+            string = try String(contentsOf: path)
         } catch {
             parsingCompleteAction?(.failure(error))
             return

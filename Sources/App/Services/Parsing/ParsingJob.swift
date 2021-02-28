@@ -5,10 +5,13 @@ import Queues
 struct ParsingJob: Job {
     typealias Payload = ConverterInputModel
     
-    private let service: DictionaryParsingService
+    private let dictionaryParsingService: DictionaryParsingService
+    private let examplesParsingService: ExamplesParsingService
     
-    init(service: DictionaryParsingService) {
-        self.service = service
+    init(dictionaryParsingService: DictionaryParsingService,
+         examplesParsingService: ExamplesParsingService) {
+        self.dictionaryParsingService = dictionaryParsingService
+        self.examplesParsingService = examplesParsingService
     }
     
     func dequeue(_ context: QueueContext, _ payload: ConverterInputModel) -> EventLoopFuture<Void> {
@@ -18,9 +21,11 @@ struct ParsingJob: Job {
 
         switch payload.entity {
         case .bkrs:
-            return service.parseDictionary(on: context, url: url, type: .bkrs)
+            return dictionaryParsingService.parseDictionary(on: context, url: url, type: .bkrs)
         case .bruks:
-            return service.parseDictionary(on: context, url: url, type: .bruks)
+            return dictionaryParsingService.parseDictionary(on: context, url: url, type: .bruks)
+        case .examples:
+            return examplesParsingService.parseExamples(on: context, url: url)
         }
     }
     

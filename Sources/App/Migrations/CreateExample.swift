@@ -1,15 +1,14 @@
 import Fluent
 
-struct CreateWord: Migration {
+struct CreateExample: Migration {
     func prepare(on database: Database) -> EventLoopFuture<Void> {
-        return database.schema(WordModel.schema)
+        return database.schema(ExampleModel.schema)
             .field("original", .string, .identifier(auto: false))
-            .field("transcription", .string)
-            .field("description", .string)
+            .field("example", .string, .required)
             .create()
     }
 
     func revert(on database: Database) -> EventLoopFuture<Void> {
-        return database.schema(WordModel.schema).delete()
+        return database.schema(ExampleModel.schema).delete()
     }
 }

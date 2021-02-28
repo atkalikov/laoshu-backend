@@ -34,17 +34,15 @@ final class DictionaryParsingServiceImpl: DictionaryParsingService {
 
         let parser = context.application
             .dictionaryFileParser(for: type)
-            .onParsingDirectives { print("did parse dirictives: \($0)") }
+            .onParsingDirectives { print("Did parse dictionary dirictives: \($0)") }
             .onParsingWords {
                 let models = $0.map { word in WordModel(word: word) }
-                models.forEach { model in
-                    context.application.db.transaction { (db) in
-                        model.save(on: db)
-                    }
+                context.application.db.transaction { db in
+                    models.create(on: db)
                 }
             }
             .onParsingComplete { [weak self] in
-                print("Complete parsing: \($0)")
+                print("Complete parsing dictionary: \($0)")
                 switch $0 {
                 case .success:
                     self?.isParsing = false

@@ -5,6 +5,7 @@ import Vapor
 
 public func configure(_ app: Application) throws {
     app.migrations.add(CreateWord())
+    app.migrations.add(CreateExample())
     app.migrations.add(JobModelMigrate())
     
     app.databases.use(
@@ -20,7 +21,12 @@ public func configure(_ app: Application) throws {
     app.queues.use(.fluent())
     
     let dictionaryParsingService = DictionaryParsingServiceImpl()
-    app.queues.add(ParsingJob(service: dictionaryParsingService))
+    let examplesParsingService = ExamplesParsingServiceImpl()
+    let job = ParsingJob(
+        dictionaryParsingService: dictionaryParsingService,
+        examplesParsingService: examplesParsingService
+    )
+    app.queues.add(job)
     
     try app.autoMigrate().wait()
     try app.queues.startInProcessJobs(on: .default)

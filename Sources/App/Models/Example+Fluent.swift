@@ -2,35 +2,30 @@ import Vapor
 import Fluent
 import LaoshuModels
 
-final class WordModel: Model {
-    static let schema: String = "words"
+final class ExampleModel: Model {
+    static let schema: String = "exmaples"
 
     @ID(custom: "original", generatedBy: .user)
     public var id: String?
 
-    @OptionalField(key: "transcription")
-    public var transcription: String?
-
-    @Field(key: "description")
-    public var description: String
+    @Field(key: "example")
+    public var example: String
     
-    @Children(for: \.$word)
-    public var examples: [ExampleModel]
-
+    @Parent(key: "words_original")
+    public var word: WordModel
+    
     var original: String {
        return id ?? ""
     }
 
     init() {
         self.id = ""
-        self.transcription = nil
-        self.description = ""
+        self.example = ""
     }
 
-    init(word: Word) {
-        self.id = word.original
-        self.transcription = word.transcription
-        self.description = word.description
+    init(example: Example) {
+        self.id = example.original
+        self.example = example.example
     }
 }
 

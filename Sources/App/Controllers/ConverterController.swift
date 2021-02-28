@@ -8,6 +8,7 @@ struct ConverterInputModel: Content {
     enum Entity: String, Content {
         case bkrs
         case bruks
+        case examples
     }
 }
 
@@ -21,14 +22,9 @@ final class ConverterController: RouteCollection {
     func convert(req: Request) throws -> EventLoopFuture<HTTPStatus> {
         let body = try req.content.decode(ConverterInputModel.self)
 
-        switch body.entity {
-        case .bkrs:
-            return req
-                .queue
-                .dispatch(ParsingJob.self, body)
-                .map { HTTPStatus.ok }
-        default:
-            throw Abort(.notFound)
-        }
+        return req
+            .queue
+            .dispatch(ParsingJob.self, body)
+            .map { HTTPStatus.ok }
     }
 }
