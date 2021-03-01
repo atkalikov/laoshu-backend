@@ -1,12 +1,7 @@
-//
-//  DictionaryFileParser.swift
-//  Parser
-//
-//  Created by Anton Tkalikov on 22.05.2020.
-//  Copyright © 2020 atkalikov. All rights reserved.
-//
-
 import Vapor
+#if canImport(FoundationNetworking)
+    import FoundationNetworking
+#endif
 import LaoshuModels
 
 public protocol DictionaryFileParser: AnyObject {
@@ -79,7 +74,7 @@ final class DictionaryFileParserImpl: DictionaryFileParser {
         
         var counter: Int = 0
         while !scanner.isAtEnd {
-            autoreleasepool {
+//            autoreleasepool {
                 guard var content = scanner.scanUpToString("\n\n") else { return }
                 content = content.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !content.isEmpty else { return }
@@ -99,7 +94,7 @@ final class DictionaryFileParserImpl: DictionaryFileParser {
                     parsingWordsAction?(words)
                     words.removeAll()
                 }
-            }
+//            }
         }
         
         parsingWordsAction?(words)

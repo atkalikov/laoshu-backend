@@ -1,5 +1,7 @@
 import Vapor
-import Foundation
+#if canImport(FoundationNetworking)
+    import FoundationNetworking
+#endif
 import LaoshuModels
 
 public protocol ExamplesFileParser: AnyObject {
@@ -60,7 +62,7 @@ final class ExamplesFileParserImpl: ExamplesFileParser {
         
         var counter: Int = 0
         while !scanner.isAtEnd {
-            autoreleasepool {
+//            autoreleasepool {
                 guard var content = scanner.scanUpToString("\n\n") else {
                     scanner.currentIndex = scanner.string.index(after: scanner.currentIndex)
                     return
@@ -89,7 +91,7 @@ final class ExamplesFileParserImpl: ExamplesFileParser {
                     parsingExamplesAction?(examples)
                     examples.removeAll()
                 }
-            }
+//            }
         }
         
         parsingExamplesAction?(examples)

@@ -10,11 +10,11 @@ public func configure(_ app: Application) throws {
     
     app.databases.use(
         .mysql(
-            hostname: "localhost",
-            port: 3307,
-            username: "vapor",
-            password: "vapor",
-            database: "vapor",
+            hostname: Environment.get("DATABASE_HOST") ?? "localhost",
+            port: 3306,
+            username: Environment.get("DATABASE_USERNAME") ?? "vapor_username",
+            password: Environment.get("DATABASE_PASSWORD") ?? "vapor_password",
+            database: Environment.get("DATABASE_NAME") ?? "vapor_database",
             tlsConfiguration: .forClient(certificateVerification: .none),
             connectionPoolTimeout: .hours(2)
         ), as: .mysql)

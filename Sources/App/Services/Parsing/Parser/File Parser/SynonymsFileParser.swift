@@ -1,5 +1,7 @@
 import Vapor
-import Foundation
+#if canImport(FoundationNetworking)
+    import FoundationNetworking
+#endif
 import LaoshuModels
 
 public protocol SynonymsFileParser: AnyObject {
@@ -53,7 +55,7 @@ final class SynonymsFileParserImpl: SynonymsFileParser {
 
         var counter: Int = 0
         while !scanner.isAtEnd {
-            autoreleasepool {
+//            autoreleasepool {
                 guard var content = scanner.scanUpToString("\n") else { return }
                 content = content.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !content.isEmpty else { return }
@@ -66,7 +68,7 @@ final class SynonymsFileParserImpl: SynonymsFileParser {
                     parsingSynonymsAction?(synonyms)
                     synonyms.removeAll()
                 }
-            }
+//            }
         }
 
         parsingSynonymsAction?(synonyms)
