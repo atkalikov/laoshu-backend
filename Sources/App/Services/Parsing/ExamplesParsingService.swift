@@ -1,14 +1,14 @@
 import Vapor
 import Queues
-import Foundation
+import Fluent
 import LaoshuModels
 
 public protocol ExamplesParsingService: AnyObject {
     var isParsing: Bool { get }
-    func parseExamples(on context: QueueContext, url: URL) -> EventLoopFuture<Void>
+    func parseExamples(on context: QueueContext, url: URL, isItInitialParsing: Bool) -> EventLoopFuture<Void>
 }
 
-final class ExamplesParsingServiceImpl: ExamplesParsingService {
+final class ExamplesParsingServiceImpl {
     private let logger: Logger
     var isParsing: Bool = false
     
@@ -16,9 +16,38 @@ final class ExamplesParsingServiceImpl: ExamplesParsingService {
         self.logger = logger
     }
     
+    func writeInitial(examples: [Example], on db: Database) -> EventLoopFuture<Void> {
+        examples
+            .map { ExampleModel(example: $0) }
+            .create(on: db)
+    }
+    
+    // Too slowly but safety
+    func writeUpdated(examples: [Example], on db: Database) -> EventLoopFuture<Void> {
+        examples
+            .map { example in
+                ExampleModel
+                    .query(on: db)
+                    .filter(\.$original, .equal, example.original)
+                    .first()
+                    .flatMap {
+                    if let model = $0 {
+                        model.update(example: example)
+                        return model.save(on: db)
+                    } else {
+                        return ExampleModel(example: example).save(on: db)
+                    }
+                }
+            }
+            .flatten(on: db.eventLoop)
+    }
+}
+
+extension ExamplesParsingServiceImpl: ExamplesParsingService {
     func parseExamples(
         on context: QueueContext,
-        url: URL
+        url: URL,
+        isItInitialParsing: Bool
     ) -> EventLoopFuture<Void> {
         let promise = context.eventLoop.makePromise(of: Void.self)
         var futures: [EventLoopFuture<Void>] = []
@@ -29,10 +58,10 @@ final class ExamplesParsingServiceImpl: ExamplesParsingService {
         let parser = context.application
             .examplesFileParser
             .onParsingExamples { [weak self] examples in
-                self?.logger.info("\(Date()): did parse \(examples.count) examples")
-                let future = examples
-                    .map { example in ExampleModel(example: example) }
-                    .create(on: db)
+                guard let self = self else { return }
+                self.logger.info("\(Date()): did parse \(examples.count) examples")
+                let future = isItInitialParsing ?
+                    self.writeInitial(examples: examples, on: db) : self.writeUpdated(examples: examples, on: db)
                 futures.append(future)
             }
             .onParsingComplete { [weak self] in

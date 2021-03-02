@@ -18,11 +18,11 @@ struct ParsingJob: Job {
 
         switch payload.entity {
         case .bkrs:
-            return parsingService.parseDictionary(on: context, url: url, type: .bkrs)
+            return parsingService.parseDictionary(on: context, url: url, type: .bkrs, isItInitialParsing: payload.initial)
         case .bruks:
-            return parsingService.parseDictionary(on: context, url: url, type: .bruks)
+            return parsingService.parseDictionary(on: context, url: url, type: .bruks, isItInitialParsing: payload.initial)
         case .examples:
-            return parsingService.parseExamples(on: context, url: url)
+            return parsingService.parseExamples(on: context, url: url, isItInitialParsing: payload.initial)
         case .antonyms:
             return parsingService.parseAntonyms(on: context, url: url)
         case .synonyms:

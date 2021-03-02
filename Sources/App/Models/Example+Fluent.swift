@@ -12,17 +12,11 @@ extension FieldKey {
 final class ExampleModel: Model, Content {
     static let schema: String = "exmaple"
 
-    @ID(custom: FieldKey.Example.original, generatedBy: .user)
+    @ID(custom: .id, generatedBy: .random)
     var id: String?
     
-    var original: String {
-        get {
-            return id ?? ""
-        }
-        set {
-            id = newValue
-        }
-    }
+    @Field(key: FieldKey.Example.original)
+    var original: String
 
     @Field(key: FieldKey.Example.example)
     public var example: String
@@ -33,6 +27,11 @@ final class ExampleModel: Model, Content {
     }
 
     init(example: Example) {
+        self.original = example.original
+        self.example = example.example
+    }
+    
+    func update(example: Example) {
         self.original = example.original
         self.example = example.example
     }

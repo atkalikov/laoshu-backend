@@ -4,6 +4,7 @@ import LaoshuModels
 struct ConverterInputModel: Content {
     let url: String
     let entity: Entity
+    let initial: Bool
     
     enum Entity: String, Content {
         case bkrs

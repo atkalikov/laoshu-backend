@@ -13,17 +13,11 @@ extension FieldKey {
 final class WordModel: Model, Content {
     static let schema: String = "word"
 
-    @ID(custom: FieldKey.Word.original, generatedBy: .user)
+    @ID(custom: .id, generatedBy: .random)
     var id: String?
     
-    var original: String {
-        get {
-            return id ?? ""
-        }
-        set {
-            id = newValue
-        }
-    }
+    @Field(key: FieldKey.Word.original)
+    var original: String
 
     @OptionalField(key: FieldKey.Word.transcription)
     var transcription: String?
@@ -39,6 +33,11 @@ final class WordModel: Model, Content {
 
     init(word: Word) {
         self.original = word.original
+        self.transcription = word.transcription
+        self.description = word.description
+    }
+    
+    func update(with word: Word) {
         self.transcription = word.transcription
         self.description = word.description
     }

@@ -3,7 +3,8 @@ import Fluent
 struct CreateExample: Migration {
     func prepare(on database: Database) -> EventLoopFuture<Void> {
         return database.schema(ExampleModel.schema)
-            .field(FieldKey.Example.original, .string, .identifier(auto: false))
+            .field(.id, .string, .identifier(auto: false))
+            .field(FieldKey.Word.original, .string, .required)
             .field(FieldKey.Example.example, .string, .required)
             .create()
     }

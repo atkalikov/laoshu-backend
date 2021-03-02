@@ -3,10 +3,10 @@ import Queues
 import LaoshuModels
 
 protocol ParsingService {
-    func parseDictionary(on context: QueueContext, url: URL, type: DictionaryType) -> EventLoopFuture<Void>
+    func parseDictionary(on context: QueueContext, url: URL, type: DictionaryType, isItInitialParsing: Bool) -> EventLoopFuture<Void>
     func parseSynonyms(on context: QueueContext, url: URL) -> EventLoopFuture<Void>
     func parseAntonyms(on context: QueueContext, url: URL) -> EventLoopFuture<Void>
-    func parseExamples(on context: QueueContext, url: URL) -> EventLoopFuture<Void>
+    func parseExamples(on context: QueueContext, url: URL, isItInitialParsing: Bool) -> EventLoopFuture<Void>
 }
 
 struct ParsingServiceImpl: ParsingService {
@@ -25,8 +25,13 @@ struct ParsingServiceImpl: ParsingService {
         self.examplesParsingService = examplesParsingService
     }
     
-    func parseDictionary(on context: QueueContext, url: URL, type: DictionaryType) -> EventLoopFuture<Void> {
-        dictionaryParsingService.parseDictionary(on: context, url: url, type: type)
+    func parseDictionary(
+        on context: QueueContext,
+        url: URL,
+        type: DictionaryType,
+        isItInitialParsing: Bool
+    ) -> EventLoopFuture<Void> {
+        dictionaryParsingService.parseDictionary(on: context, url: url, type: type, isItInitialParsing: isItInitialParsing)
     }
     
     func parseSynonyms(on context: QueueContext, url: URL) -> EventLoopFuture<Void> {
@@ -37,8 +42,8 @@ struct ParsingServiceImpl: ParsingService {
         antonymsParsingService.parseAntonyms(on: context, url: url)
     }
     
-    func parseExamples(on context: QueueContext, url: URL) -> EventLoopFuture<Void> {
-        examplesParsingService.parseExamples(on: context, url: url)
+    func parseExamples(on context: QueueContext, url: URL, isItInitialParsing: Bool) -> EventLoopFuture<Void> {
+        examplesParsingService.parseExamples(on: context, url: url, isItInitialParsing: isItInitialParsing)
     }
 }
 
