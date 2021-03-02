@@ -5,21 +5,16 @@ import LaoshuModels
 
 public protocol ExamplesParsingService: AnyObject {
     var isParsing: Bool { get }
-    
-    func parseExamples(
-        on context: QueueContext,
-        url: URL
-    ) -> EventLoopFuture<Void>
+    func parseExamples(on context: QueueContext, url: URL) -> EventLoopFuture<Void>
 }
 
 final class ExamplesParsingServiceImpl: ExamplesParsingService {
     private let logger: Logger
+    var isParsing: Bool = false
     
     init(logger: Logger) {
         self.logger = logger
     }
-    
-    var isParsing: Bool = false
     
     func parseExamples(
         on context: QueueContext,
@@ -27,20 +22,21 @@ final class ExamplesParsingServiceImpl: ExamplesParsingService {
     ) -> EventLoopFuture<Void> {
         let promise = context.eventLoop.makePromise(of: Void.self)
         var futures: [EventLoopFuture<Void>] = []
+        let db = context.application.db
         
         isParsing = true
         
         let parser = context.application
-            .examplesFileParser()
+            .examplesFileParser
             .onParsingExamples { [weak self] examples in
-                self?.logger.info("did parse \(examples.count) examples")
+                self?.logger.info("\(Date()): did parse \(examples.count) examples")
                 let future = examples
                     .map { example in ExampleModel(example: example) }
-                    .create(on: context.application.db)
+                    .create(on: db)
                 futures.append(future)
             }
             .onParsingComplete { [weak self] in
-                self?.logger.info("Complete parsing examples: \($0)")
+                self?.logger.info("\(Date()): complete parsing examples: \($0)")
                 switch $0 {
                 case .success:
                     self?.isParsing = false
@@ -52,7 +48,6 @@ final class ExamplesParsingServiceImpl: ExamplesParsingService {
             }
         
         parser.parse(fileAt: url)
-        
         return promise.futureResult
     }
 }

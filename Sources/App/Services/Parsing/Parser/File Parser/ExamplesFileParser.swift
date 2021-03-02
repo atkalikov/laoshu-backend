@@ -62,7 +62,7 @@ final class ExamplesFileParserImpl: ExamplesFileParser {
         
         var counter: Int = 0
         while !scanner.isAtEnd {
-//            autoreleasepool {
+            autoreleasepool {
                 guard var content = scanner.scanUpToString("\n\n") else {
                     scanner.currentIndex = scanner.string.index(after: scanner.currentIndex)
                     return
@@ -78,8 +78,7 @@ final class ExamplesFileParserImpl: ExamplesFileParser {
                 do {
                     try process(string: content, counter: counter)
                 } catch {
-                    print("Cant parse: \(error)")
-//                    parsingCompleteAction?(.failure(error))
+                    parsingCompleteAction?(.failure(error))
                     return
                 }
                 counter += 1
@@ -87,14 +86,16 @@ final class ExamplesFileParserImpl: ExamplesFileParser {
                     scanner.currentIndex = index
                 }
                 
-                if examples.count % 1_000 == 0 {
+                if examples.count % 25 == 0, !examples.isEmpty {
                     parsingExamplesAction?(examples)
                     examples.removeAll()
                 }
-//            }
+            }
         }
         
-        parsingExamplesAction?(examples)
+        if !examples.isEmpty {
+            parsingExamplesAction?(examples)
+        }
         examples.removeAll()
         
         parsingCompleteAction?(.success(path))
@@ -104,13 +105,13 @@ final class ExamplesFileParserImpl: ExamplesFileParser {
         if let example = exampleStrategy.parse(from: string) {
             examples.append(example)
         } else {
-            throw ExamplesFileParserError.cantParseExample(string)
+            examples.append(.init(original: string, example: ""))
         }
     }
 }
 
 extension Application {
-    func examplesFileParser() -> ExamplesFileParser {
+    var examplesFileParser: ExamplesFileParser {
         let converter = TextConverter()
         let exampleStrategy = ParsingExampleStrategyImpl(builder: ExampleBuilder(), converter: converter)
         return ExamplesFileParserImpl(exampleStrategy: exampleStrategy)

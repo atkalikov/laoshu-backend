@@ -16,7 +16,7 @@ final class SearchController: RouteCollection {
         
         return WordModel
             .query(on: req.db)
-            .filter(\.$original == word)
+            .filter(\.$id == word)
             .first()
             .unwrap(or: Abort(.notFound))
     }

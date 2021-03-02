@@ -2,20 +2,32 @@ import Vapor
 import Fluent
 import LaoshuModels
 
+extension FieldKey {
+    struct Example {
+        static var original: FieldKey { .string("original") }
+        static var example: FieldKey { .string("example") }
+    }
+}
+
 final class ExampleModel: Model, Content {
     static let schema: String = "exmaple"
 
-    @ID()
-    var id: UUID?
+    @ID(custom: FieldKey.Example.original, generatedBy: .user)
+    var id: String?
     
-    @Field(key: "original")
-    public var original: String
+    var original: String {
+        get {
+            return id ?? ""
+        }
+        set {
+            id = newValue
+        }
+    }
 
-    @Field(key: "example")
+    @Field(key: FieldKey.Example.example)
     public var example: String
 
     init() {
-        self.id = UUID()
         self.original = ""
         self.example = ""
     }

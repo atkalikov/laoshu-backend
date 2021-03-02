@@ -4,10 +4,18 @@ import QueuesFluentDriver
 import Vapor
 
 public func configure(_ app: Application) throws {
+//    app.logger.logLevel = .debug
+    
+    try database(app)
+    try queues(app)
+    try routes(app)
+}
+
+private func database(_ app: Application) throws {
     app.migrations.add(CreateWord())
     app.migrations.add(CreateExample())
     app.migrations.add(JobModelMigrate())
-    
+
     app.databases.use(
         .mysql(
             hostname: Environment.get("DATABASE_HOST") ?? "localhost",
@@ -16,15 +24,18 @@ public func configure(_ app: Application) throws {
             password: Environment.get("DATABASE_PASSWORD") ?? "vapor_password",
             database: Environment.get("DATABASE_NAME") ?? "vapor_database",
             tlsConfiguration: .forClient(certificateVerification: .none),
-            connectionPoolTimeout: .hours(2)
+            connectionPoolTimeout: .hours(1)
         ), as: .mysql)
-    app.queues.use(.fluent())
-    
+
+    try app.autoMigrate().wait()
+}
+
+
+private func queues(_ app: Application) throws {
     let job = ParsingJob(app.parsingService)
     app.queues.add(job)
-    
-    try app.autoMigrate().wait()
-    try app.queues.startInProcessJobs(on: .default)
-    
-    try routes(app)
+    app.queues.configuration.refreshInterval = .seconds(10)
+    app.queues.use(.fluent())
+    try app.queues.startInProcessJobs()
+    try app.queues.startScheduledJobs()
 }

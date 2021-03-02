@@ -74,7 +74,7 @@ final class DictionaryFileParserImpl: DictionaryFileParser {
         
         var counter: Int = 0
         while !scanner.isAtEnd {
-//            autoreleasepool {
+            autoreleasepool {
                 guard var content = scanner.scanUpToString("\n\n") else { return }
                 content = content.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !content.isEmpty else { return }
@@ -90,14 +90,16 @@ final class DictionaryFileParserImpl: DictionaryFileParser {
                     scanner.currentIndex = index
                 }
                 
-                if words.count % 100 == 0 {
+                if words.count % 25 == 0, !words.isEmpty {
                     parsingWordsAction?(words)
                     words.removeAll()
                 }
-//            }
+            }
         }
         
-        parsingWordsAction?(words)
+        if !words.isEmpty {
+            parsingWordsAction?(words)
+        }
         words.removeAll()
         
         parsingCompleteAction?(.success(path))
@@ -109,14 +111,14 @@ final class DictionaryFileParserImpl: DictionaryFileParser {
             if let directives = dictionaryDirectivesStrategy.parse(from: string) {
                 parsingDirectivesAction?(directives)
             } else {
-                logger.error("Can't parse dirictories")
+                logger.error("\(Date()): can't parse dirictories")
                 throw DictionaryFileParserError.cantParseDirectories
             }
         default:
             if let word = wordStrategy.parse(from: string) {
                 words.append(word)
             } else {
-                logger.error("Can't parse word")
+                logger.error("\(Date()): can't parse word")
                 throw DictionaryFileParserError.cantParseWord
             }
         }

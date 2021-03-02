@@ -3,10 +3,9 @@ import Fluent
 struct CreateWord: Migration {
     func prepare(on database: Database) -> EventLoopFuture<Void> {
         return database.schema(WordModel.schema)
-            .id()
-            .field("original", .string, .required)
-            .field("transcription", .string)
-            .field("description", .string)
+            .field(FieldKey.Word.original, .string, .identifier(auto: false))
+            .field(FieldKey.Word.transcription, .string)
+            .field(FieldKey.Word.description, .string, .required)
             .create()
     }
 

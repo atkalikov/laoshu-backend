@@ -55,20 +55,18 @@ final class SynonymsFileParserImpl: SynonymsFileParser {
 
         var counter: Int = 0
         while !scanner.isAtEnd {
-//            autoreleasepool {
-                guard var content = scanner.scanUpToString("\n") else { return }
-                content = content.trimmingCharacters(in: .whitespacesAndNewlines)
-                guard !content.isEmpty else { return }
-                process(string: content, counter: counter)
-                counter += 1
-                if let index = string.index(scanner.currentIndex, offsetBy: 1, limitedBy: string.endIndex) {
-                    scanner.currentIndex = index
-                }
-                if synonyms.count % 100 == 0 {
-                    parsingSynonymsAction?(synonyms)
-                    synonyms.removeAll()
-                }
-//            }
+            guard var content = scanner.scanUpToString("\n") else { return }
+            content = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !content.isEmpty else { return }
+            process(string: content, counter: counter)
+            counter += 1
+            if let index = string.index(scanner.currentIndex, offsetBy: 1, limitedBy: string.endIndex) {
+                scanner.currentIndex = index
+            }
+            if synonyms.count % 100 == 0 {
+                parsingSynonymsAction?(synonyms)
+                synonyms.removeAll()
+            }
         }
 
         parsingSynonymsAction?(synonyms)
