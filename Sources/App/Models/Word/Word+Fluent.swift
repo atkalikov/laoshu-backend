@@ -1,4 +1,5 @@
 import Vapor
+import Foundation
 import Fluent
 import LaoshuModels
 
@@ -7,6 +8,7 @@ extension FieldKey {
         static var original: FieldKey { .string("original") }
         static var transcription: FieldKey { .string("transcription") }
         static var description: FieldKey { .string("description") }
+        static var synonymsId: FieldKey { .string("synonymsId") }
     }
 }
 
@@ -24,6 +26,9 @@ final class WordModel: Model, Content {
 
     @Field(key: FieldKey.Word.description)
     var description: String
+    
+    @Siblings(through: WordSynonyms.self, from: \.$word, to: \.$synonym)
+    var synonyms: [SynonymModel]
 
     init() {
         self.original = ""
@@ -40,5 +45,22 @@ final class WordModel: Model, Content {
     func update(with word: Word) {
         self.transcription = word.transcription
         self.description = word.description
+    }
+}
+
+extension Word: Content { }
+
+extension WordModel {
+    var output: Word {
+        .init(
+            original: self.original,
+            transcription: self.transcription,
+            description: self.description,
+            antonyms: [],
+            synonyms: self.synonyms.map { synonym in
+                Synonym(content: synonym.words.map { $0.original })
+            },
+            isFavorite: false
+        )
     }
 }

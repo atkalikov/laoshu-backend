@@ -60,7 +60,7 @@
         "repositoryURL": "https://github.com/atkalikov/laoshu-models.git",
         "state": {
           "branch": "main",
-          "revision": "d0b60474400adba3f34b81ea9eaddb3dff8569cf",
+          "revision": "aee31be75b4c74748fe006c615a0c71bd63026de",
           "version": null
         }
       },
@@ -204,8 +204,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "07478e1edb9376f96c1fd5d797c5f401165d4ec2",
-          "version": "4.41.1"
+          "revision": "2bac08a5051c609ec8ff64c410ddf88be7d2dd20",
+          "version": "4.41.2"
         }
       },
       {

@@ -35,7 +35,7 @@ struct ParsingServiceImpl: ParsingService {
     }
     
     func parseSynonyms(on context: QueueContext, url: URL) -> EventLoopFuture<Void> {
-        synonymsParsingService.parseSynonyms(on: context, url: url)
+        synonymsParsingService.parseSynonyms(on: context, url: url, isItInitialParsing: true)
     }
     
     func parseAntonyms(on context: QueueContext, url: URL) -> EventLoopFuture<Void> {
@@ -52,7 +52,7 @@ extension Application {
         ParsingServiceImpl(
             dictionaryParsingService: DictionaryParsingServiceImpl(logger: logger),
             antonymsParsingService: AntonymsParsingServiceImpl(),
-            synonymsParsingService: SynonymsParsingServiceImpl(),
+            synonymsParsingService: SynonymsParsingServiceImpl(logger: logger),
             examplesParsingService: ExamplesParsingServiceImpl(logger: logger)
         )
     }

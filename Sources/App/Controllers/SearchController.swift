@@ -9,15 +9,17 @@ final class SearchController: RouteCollection {
         converterBuilder.get(":word", use: search(req:))
     }
 
-    func search(req: Request) throws -> EventLoopFuture<WordModel> {
+    func search(req: Request) throws -> EventLoopFuture<Word> {
         guard let word = req.parameters.get("word") else {
             throw Abort(.badRequest)
         }
         
         return WordModel
             .query(on: req.db)
-            .filter(\.$id == word)
+            .filter(\.$original == word)
+            .with(\.$synonyms) { synonyms in synonyms.with(\.$words) }
             .first()
             .unwrap(or: Abort(.notFound))
+            .map { $0.output }
     }
 }
