@@ -1,7 +1,7 @@
 import Vapor
 import Queues
 import Fluent
-import LaoshuModels
+import LaoshuCore
 
 protocol DictionaryParsingService: AnyObject {
     var isParsing: Bool { get }
@@ -10,7 +10,7 @@ protocol DictionaryParsingService: AnyObject {
         on context: QueueContext,
         url: URL,
         type: DictionaryType,
-        isItInitialParsing: Bool
+        mode: ParsingMode
     ) -> EventLoopFuture<Void>
 }
 
@@ -26,6 +26,11 @@ final class DictionaryParsingServiceImpl {
         words
             .map { WordModel(word: $0) }
             .create(on: db)
+            .flatMapError {
+                print($0.localizedDescription)
+                print(words)
+                return db.eventLoop.future()
+            }
     }
     
     // Too slowly but safety
@@ -54,10 +59,11 @@ extension DictionaryParsingServiceImpl: DictionaryParsingService {
         on context: QueueContext,
         url: URL,
         type: DictionaryType,
-        isItInitialParsing: Bool
+        mode: ParsingMode
     ) -> EventLoopFuture<Void> {
         let promise = context.eventLoop.makePromise(of: Void.self)
         var futures: [EventLoopFuture<Void>] = []
+        var counter: Int = 0
         let db = context.application.db
         
         isParsing = true
@@ -70,11 +76,12 @@ extension DictionaryParsingServiceImpl: DictionaryParsingService {
             .onParsingWords { [weak self] words in
                 guard let self = self else { return }
                 self.logger.info("\(Date()): did parse \(words.count) words")
-                let future = isItInitialParsing ? self.writeInitial(words: words, on: db) : self.writeUpdated(words: words, on: db)
+                counter += words.count
+                let future = mode == .fast ? self.writeInitial(words: words, on: db) : self.writeUpdated(words: words, on: db)
                 futures.append(future)
             }
             .onParsingComplete { [weak self] in
-                self?.logger.info("\(Date()): complete parsing dictionary: \($0)")
+                self?.logger.info("\(Date()): complete parsing dictionary: \($0)\nTotal: \(counter)")
                 switch $0 {
                 case .success:
                     self?.isParsing = false

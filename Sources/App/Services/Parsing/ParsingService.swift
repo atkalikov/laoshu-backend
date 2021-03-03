@@ -1,12 +1,27 @@
 import Vapor
 import Queues
-import LaoshuModels
+import LaoshuCore
+
+enum ParsingMode: String, Codable {
+    case soft
+    case fast
+}
 
 protocol ParsingService {
-    func parseDictionary(on context: QueueContext, url: URL, type: DictionaryType, isItInitialParsing: Bool) -> EventLoopFuture<Void>
+    func parseDictionary(
+        on context: QueueContext,
+        url: URL,
+        type: DictionaryType,
+        mode: ParsingMode
+    ) -> EventLoopFuture<Void>
+    
     func parseSynonyms(on context: QueueContext, url: URL) -> EventLoopFuture<Void>
     func parseAntonyms(on context: QueueContext, url: URL) -> EventLoopFuture<Void>
-    func parseExamples(on context: QueueContext, url: URL, isItInitialParsing: Bool) -> EventLoopFuture<Void>
+    func parseExamples(
+        on context: QueueContext,
+        url: URL,
+        mode: ParsingMode
+    ) -> EventLoopFuture<Void>
 }
 
 struct ParsingServiceImpl: ParsingService {
@@ -29,21 +44,21 @@ struct ParsingServiceImpl: ParsingService {
         on context: QueueContext,
         url: URL,
         type: DictionaryType,
-        isItInitialParsing: Bool
+        mode: ParsingMode
     ) -> EventLoopFuture<Void> {
-        dictionaryParsingService.parseDictionary(on: context, url: url, type: type, isItInitialParsing: isItInitialParsing)
+        dictionaryParsingService.parseDictionary(on: context, url: url, type: type, mode: mode)
     }
     
     func parseSynonyms(on context: QueueContext, url: URL) -> EventLoopFuture<Void> {
-        synonymsParsingService.parseSynonyms(on: context, url: url, isItInitialParsing: true)
+        synonymsParsingService.parseSynonyms(on: context, url: url, mode: .fast)
     }
     
     func parseAntonyms(on context: QueueContext, url: URL) -> EventLoopFuture<Void> {
         antonymsParsingService.parseAntonyms(on: context, url: url)
     }
     
-    func parseExamples(on context: QueueContext, url: URL, isItInitialParsing: Bool) -> EventLoopFuture<Void> {
-        examplesParsingService.parseExamples(on: context, url: url, isItInitialParsing: isItInitialParsing)
+    func parseExamples(on context: QueueContext, url: URL, mode: ParsingMode) -> EventLoopFuture<Void> {
+        examplesParsingService.parseExamples(on: context, url: url, mode: mode)
     }
 }
 

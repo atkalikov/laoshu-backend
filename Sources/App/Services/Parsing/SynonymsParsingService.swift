@@ -1,12 +1,12 @@
 import Vapor
 import Queues
 import Fluent
-import LaoshuModels
+import LaoshuCore
 
 protocol SynonymsParsingService: AnyObject {
     var isParsing: Bool { get }
     
-    func parseSynonyms(on context: QueueContext, url: URL, isItInitialParsing: Bool) -> EventLoopFuture<Void>
+    func parseSynonyms(on context: QueueContext, url: URL, mode: ParsingMode) -> EventLoopFuture<Void>
 }
 
 final class SynonymsParsingServiceImpl {
@@ -46,10 +46,11 @@ extension SynonymsParsingServiceImpl: SynonymsParsingService {
     func parseSynonyms(
         on context: QueueContext,
         url: URL,
-        isItInitialParsing: Bool
+        mode: ParsingMode
     ) -> EventLoopFuture<Void> {
         let promise = context.eventLoop.makePromise(of: Void.self)
         var futures: [EventLoopFuture<Void>] = []
+        var counter: Int = 0
         let db = context.application.db
         
         isParsing = true
@@ -59,11 +60,12 @@ extension SynonymsParsingServiceImpl: SynonymsParsingService {
             .onParsingSynonyms { [weak self] synonyms in
                 guard let self = self else { return }
                 self.logger.info("\(Date()): did parse \(synonyms.count) synonyms")
+                counter += synonyms.count
                 let future = self.writeInitial(synonyms: synonyms, on: db)
                 futures.append(future)
             }
             .onParsingComplete { [weak self] in
-                self?.logger.info("\(Date()): complete parsing synonyms: \($0)")
+                self?.logger.info("\(Date()): complete parsing synonyms: \($0)\nTotal: \(counter)")
                 switch $0 {
                 case .success:
                     self?.isParsing = false

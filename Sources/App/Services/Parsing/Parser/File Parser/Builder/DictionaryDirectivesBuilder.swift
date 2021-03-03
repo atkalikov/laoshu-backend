@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import LaoshuModels
+import LaoshuCore
 
 final class DictionaryDirectivesBuilder {
     private var name: String?

@@ -1,5 +1,5 @@
 import Foundation
-import LaoshuModels
+import LaoshuCore
 
 public protocol ParsingExampleStrategy {
     func parse(from string: String) -> Example?

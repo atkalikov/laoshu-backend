@@ -2,7 +2,7 @@ import Vapor
 #if canImport(FoundationNetworking)
     import FoundationNetworking
 #endif
-import LaoshuModels
+import LaoshuCore
 
 public protocol DictionaryFileParser: AnyObject {
     @discardableResult

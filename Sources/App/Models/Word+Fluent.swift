@@ -1,7 +1,7 @@
 import Vapor
 import Foundation
 import Fluent
-import LaoshuModels
+import LaoshuCore
 
 extension FieldKey {
     struct Word {

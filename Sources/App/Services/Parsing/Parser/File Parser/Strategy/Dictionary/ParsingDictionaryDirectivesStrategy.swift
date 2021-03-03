@@ -1,5 +1,5 @@
 import Foundation
-import LaoshuModels
+import LaoshuCore
 
 struct ParsingDictionaryDirectivesStrategy {
     private let builder: DictionaryDirectivesBuilder

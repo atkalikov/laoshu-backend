@@ -1,10 +1,10 @@
 import Vapor
-import LaoshuModels
+import LaoshuCore
 
 struct ConverterInputModel: Content {
     let url: String
     let entity: Entity
-    let initial: Bool
+    let mode: ParsingMode
     
     enum Entity: String, Content {
         case bkrs

@@ -7,7 +7,10 @@ struct CreateWord: Migration {
             .field(FieldKey.Word.original, .string, .required)
             .unique(on: FieldKey.Word.original)
             .field(FieldKey.Word.transcription, .string)
-            .field(FieldKey.Word.description, .string, .required)
+            .field(FieldKey.Word.description, .sql(raw: "TEXT"), .required)
+            .constraint(
+                .custom("INDEX word_index (\(FieldKey.Word.transcription), \(FieldKey.Word.description), \(FieldKey.Word.original)")
+            )
             .create()
     }
 

@@ -1,5 +1,5 @@
 import Foundation
-import LaoshuModels
+import LaoshuCore
 
 final class ExampleBuilder {
     public var original: String?

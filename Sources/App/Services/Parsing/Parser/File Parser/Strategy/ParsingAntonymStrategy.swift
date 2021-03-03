@@ -1,5 +1,5 @@
 import Foundation
-import LaoshuModels
+import LaoshuCore
 
 public protocol ParsingAntonymStrategy {
     func parse(from string: String) -> Antonym?

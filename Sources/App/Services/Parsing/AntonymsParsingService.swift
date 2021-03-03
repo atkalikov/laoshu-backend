@@ -1,7 +1,7 @@
 import Vapor
 import Queues
 import Fluent
-import LaoshuModels
+import LaoshuCore
 
 protocol AntonymsParsingService: AnyObject {
     var isParsing: Bool { get }
@@ -51,6 +51,7 @@ extension AntonymsParsingServiceImpl: AntonymsParsingService {
     ) -> EventLoopFuture<Void> {
         let promise = context.eventLoop.makePromise(of: Void.self)
         var futures: [EventLoopFuture<Void>] = []
+        var counter: Int = 0
         let db = context.application.db
         
         isParsing = true
@@ -60,11 +61,12 @@ extension AntonymsParsingServiceImpl: AntonymsParsingService {
             .onParsingAntonyms { [weak self] antonyms in
                 guard let self = self else { return }
                 self.logger.info("\(Date()): did parse \(antonyms.count) antonyms")
+                counter += antonyms.count
                 let future = self.writeInitial(antonyms: antonyms, on: db)
                 futures.append(future)
             }
             .onParsingComplete { [weak self] in
-                print("\(Date()): complete parsing antonyms: \($0)")
+                print("\(Date()): complete parsing antonyms: \($0)\nTotal: \(counter)")
                 switch $0 {
                 case .success:
                     self?.isParsing = false

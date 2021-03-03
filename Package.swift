@@ -12,7 +12,7 @@ let package = Package(
         .package(url: "https://github.com/vapor/fluent.git", from: "4.0.0"),
         .package(url: "https://github.com/vapor/fluent-mysql-driver.git", from: "4.0.0"),
         .package(name: "QueuesFluentDriver", url: "https://github.com/m-barthelemy/vapor-queues-fluent-driver.git", from: "1.1.0"),
-        .package(url: "https://github.com/atkalikov/laoshu-models.git", .branch("main")),
+        .package(url: "https://github.com/atkalikov/laoshu-core.git", .branch("main")),
     ],
     targets: [
         .target(
@@ -22,7 +22,7 @@ let package = Package(
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "FluentMySQLDriver", package: "fluent-mysql-driver"),
                 .product(name: "QueuesFluentDriver", package: "QueuesFluentDriver"),
-                .product(name: "LaoshuModels", package: "laoshu-models"),
+                .product(name: "LaoshuCore", package: "laoshu-core"),
                 
             ],
             swiftSettings: [

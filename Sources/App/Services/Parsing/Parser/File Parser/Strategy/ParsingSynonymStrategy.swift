@@ -1,5 +1,5 @@
 import Foundation
-import LaoshuModels
+import LaoshuCore
 
 public protocol ParsingSynonymStrategy {
     func parse(from string: String) -> Synonym?

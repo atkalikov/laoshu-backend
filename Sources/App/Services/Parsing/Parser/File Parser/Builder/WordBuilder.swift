@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import LaoshuModels
+import LaoshuCore
 
 final class WordBuilder {
     public var original: String?

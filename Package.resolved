@@ -56,11 +56,11 @@
         }
       },
       {
-        "package": "laoshu-models",
-        "repositoryURL": "https://github.com/atkalikov/laoshu-models.git",
+        "package": "laoshu-core",
+        "repositoryURL": "https://github.com/atkalikov/laoshu-core.git",
         "state": {
           "branch": "main",
-          "revision": "aee31be75b4c74748fe006c615a0c71bd63026de",
+          "revision": "68d1c04003066a1958bf7bbfe8b8fc777257a743",
           "version": null
         }
       },

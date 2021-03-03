@@ -1,6 +1,6 @@
 import Vapor
 import Fluent
-import LaoshuModels
+import LaoshuCore
 
 final class SearchController: RouteCollection {
 
