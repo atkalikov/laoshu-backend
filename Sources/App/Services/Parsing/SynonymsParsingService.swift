@@ -31,9 +31,10 @@ final class SynonymsParsingServiceImpl {
                         return synonymModel
                             .save(on: db)
                             .flatMap {
-                                words
-                                    .map { WordSynonyms(wordId: $0.id!, synonymId: synonymModel.id!) }
-                                    .create(on: db)
+                                words.map {
+                                    $0.$synonyms.attach(synonymModel, method: .ifNotExists, on: db)
+                                }
+                                .flatten(on: db.eventLoop)
                             }
                     }
                 }

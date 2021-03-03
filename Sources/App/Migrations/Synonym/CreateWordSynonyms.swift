@@ -6,8 +6,7 @@ struct CreateWordSynonyms: Migration {
             .field(.id, .string, .identifier(auto: false))
             .field(FieldKey.WordSynonyms.synonymId, .string, .required)
             .field(FieldKey.WordSynonyms.wordId, .string, .required)
-            .unique(on: FieldKey.WordSynonyms.synonymId)
-            .unique(on: FieldKey.WordSynonyms.wordId)
+            .unique(on: FieldKey.WordSynonyms.synonymId, FieldKey.WordSynonyms.wordId)
             .create()
     }
 

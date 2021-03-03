@@ -23,8 +23,8 @@ final class WordSynonyms: Model {
     
     init() { }
     
-    init(wordId: String, synonymId: String) {
-        self.$word.id = wordId
-        self.$synonym.id = synonymId
+    init(word: WordModel, synonym: SynonymModel) {
+        self.$word.id = try! word.requireID()
+        self.$synonym.id = try! synonym.requireID()
     }
 }

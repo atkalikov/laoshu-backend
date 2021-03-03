@@ -16,6 +16,7 @@ private func database(_ app: Application) throws {
     app.migrations.add(CreateExample())
     app.migrations.add(CreateWordSynonyms())
     app.migrations.add(CreateSynonym())
+    app.migrations.add(CreateWordAntonyms())
     app.migrations.add(JobModelMigrate())
 
     app.databases.use(

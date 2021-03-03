@@ -18,6 +18,7 @@ final class SearchController: RouteCollection {
             .query(on: req.db)
             .filter(\.$original == word)
             .with(\.$synonyms) { synonyms in synonyms.with(\.$words) }
+            .with(\.$antonyms)
             .first()
             .unwrap(or: Abort(.notFound))
             .map { $0.output }

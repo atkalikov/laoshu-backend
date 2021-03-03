@@ -6,6 +6,7 @@ struct CreateExample: Migration {
             .field(.id, .string, .identifier(auto: false))
             .field(FieldKey.Word.original, .string, .required)
             .field(FieldKey.Example.example, .string, .required)
+            .unique(on: FieldKey.Word.original)
             .create()
     }
 

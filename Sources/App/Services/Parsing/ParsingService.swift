@@ -51,7 +51,7 @@ extension Application {
     var parsingService: ParsingService {
         ParsingServiceImpl(
             dictionaryParsingService: DictionaryParsingServiceImpl(logger: logger),
-            antonymsParsingService: AntonymsParsingServiceImpl(),
+            antonymsParsingService: AntonymsParsingServiceImpl(logger: logger),
             synonymsParsingService: SynonymsParsingServiceImpl(logger: logger),
             examplesParsingService: ExamplesParsingServiceImpl(logger: logger)
         )

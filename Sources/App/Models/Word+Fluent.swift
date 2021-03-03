@@ -29,6 +29,9 @@ final class WordModel: Model, Content {
     
     @Siblings(through: WordSynonyms.self, from: \.$word, to: \.$synonym)
     var synonyms: [SynonymModel]
+    
+    @Siblings(through: WordAntonyms.self, from: \.$word, to: \.$antonym)
+    var antonyms: [WordModel]
 
     init() {
         self.original = ""
@@ -56,7 +59,9 @@ extension WordModel {
             original: self.original,
             transcription: self.transcription,
             description: self.description,
-            antonyms: [],
+            antonyms: self.antonyms.map {
+                Antonym(content: self.original, opposite: $0.original)
+            },
             synonyms: self.synonyms.map { synonym in
                 Synonym(content: synonym.words.map { $0.original })
             },
