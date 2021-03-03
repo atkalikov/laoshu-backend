@@ -18,18 +18,28 @@ final class DictionaryParsingServiceImpl {
     private let logger: Logger
     var isParsing: Bool = false
     
+    var unpersistedWords: [String] = []
+    
     init(logger: Logger) {
         self.logger = logger
     }
     
     func writeInitial(words: [Word], on db: Database) -> EventLoopFuture<Void> {
-        words
-            .map { WordModel(word: $0) }
+        let wordsModel = words.map { WordModel(word: $0) }
+            
+        return wordsModel
             .create(on: db)
-            .flatMapError {
-                print($0.localizedDescription)
-                print(words)
-                return db.eventLoop.future()
+            .flatMapError { _ in
+                wordsModel
+                    .map { wordModel in
+                        wordModel
+                            .save(on: db)
+                            .flatMapError { [weak self] error in
+                                self?.unpersistedWords.append(wordModel.original)
+                                self?.logger.error(.init(stringLiteral: error.localizedDescription))
+                                return db.eventLoop.future()
+                            }
+                    }.flatten(on: db.eventLoop)
             }
     }
     
@@ -42,13 +52,16 @@ final class DictionaryParsingServiceImpl {
                     .filter(\.$original, .equal, word.original)
                     .first()
                     .flatMap {
-                    if let model = $0 {
-                        model.update(with: word)
-                        return model.save(on: db)
-                    } else {
-                        return WordModel(word: word).save(on: db)
+                        if let model = $0 {
+                            model.update(with: word)
+                            return model.save(on: db)
+                        } else {
+                            return WordModel(word: word).save(on: db)
+                        }
+                    }.flatMapError { [weak self] in
+                        self?.logger.error("\($0.localizedDescription)\n\(word.original)")
+                        return db.eventLoop.future()
                     }
-                }
             }
             .flatten(on: db.eventLoop)
     }
@@ -81,7 +94,11 @@ extension DictionaryParsingServiceImpl: DictionaryParsingService {
                 futures.append(future)
             }
             .onParsingComplete { [weak self] in
-                self?.logger.info("\(Date()): complete parsing dictionary: \($0)\nTotal: \(counter)")
+                self?.logger.info("\(Date()): complete parsing dictionary: \($0)")
+                self?.logger.info("\(Date()): total: \(counter)")
+                let unpersistedWordsString = self?.unpersistedWords.joined(separator: " | ") ?? ""
+                self?.logger.info("\(Date()): unpersisted: \(unpersistedWordsString))")
+                
                 switch $0 {
                 case .success:
                     self?.isParsing = false
@@ -90,6 +107,7 @@ extension DictionaryParsingServiceImpl: DictionaryParsingService {
                     self?.isParsing = false
                     promise.completeWith(.failure(error))
                 }
+                self?.unpersistedWords.removeAll()
         }
 
         parser.parse(fileAt: url)
