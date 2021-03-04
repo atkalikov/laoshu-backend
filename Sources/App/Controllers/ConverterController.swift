@@ -16,7 +16,6 @@ struct ConverterInputModel: Content {
 }
 
 final class ConverterController: RouteCollection {
-
     func boot(routes: RoutesBuilder) throws {
         let converterBuilder = routes.grouped("converter")
         converterBuilder.put(use: convert(req:))

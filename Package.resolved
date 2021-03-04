@@ -60,7 +60,7 @@
         "repositoryURL": "https://github.com/atkalikov/laoshu-core.git",
         "state": {
           "branch": "main",
-          "revision": "68d1c04003066a1958bf7bbfe8b8fc777257a743",
+          "revision": "212225d21d453fbff2d2fce6c038b3644a03555e",
           "version": null
         }
       },
@@ -141,8 +141,8 @@
         "repositoryURL": "https://github.com/apple/swift-log.git",
         "state": {
           "branch": null,
-          "revision": "12d3a8651d32295794a850307f77407f95b8c881",
-          "version": "1.4.1"
+          "revision": "5d66f7ba25daf4f94100e7022febf3c75e37a6c7",
+          "version": "1.4.2"
         }
       },
       {
@@ -204,8 +204,8 @@
         "repositoryURL": "https://github.com/vapor/vapor.git",
         "state": {
           "branch": null,
-          "revision": "2bac08a5051c609ec8ff64c410ddf88be7d2dd20",
-          "version": "4.41.2"
+          "revision": "4ba5c2d2112005e4a07cedb43ec52b47175d67ce",
+          "version": "4.41.3"
         }
       },
       {

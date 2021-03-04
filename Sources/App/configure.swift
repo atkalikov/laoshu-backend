@@ -37,7 +37,7 @@ private func database(_ app: Application) throws {
 private func queues(_ app: Application) throws {
     let job = ParsingJob(app.parsingService)
     app.queues.add(job)
-    app.queues.configuration.refreshInterval = .seconds(10)
+    app.queues.configuration.refreshInterval = .minutes(1)
     app.queues.use(.fluent())
     try app.queues.startInProcessJobs()
     try app.queues.startScheduledJobs()

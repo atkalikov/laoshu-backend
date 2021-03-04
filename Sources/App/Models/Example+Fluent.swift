@@ -37,6 +37,8 @@ final class ExampleModel: Model, Content {
     }
 }
 
+extension Example: Content { }
+
 extension ExampleModel {
     var output: Example {
         .init(original: original, example: example)
