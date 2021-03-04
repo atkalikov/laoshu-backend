@@ -14,6 +14,7 @@ protocol AntonymsParsingService: AnyObject {
 
 final class AntonymsParsingServiceImpl {
     private let logger: Logger
+    private var unpersistedAntonyms: [Antonym] = []
     var isParsing: Bool = false
     
     init(logger: Logger) {
@@ -39,6 +40,10 @@ final class AntonymsParsingServiceImpl {
                                 oppositeWord.$antonyms.attach(originalWord, method: .ifNotExists, on: db)
                             ].flatten(on: db.eventLoop)
                         }
+                }.flatMapError { [weak self] error in
+                    self?.unpersistedAntonyms.append(antonym)
+                    self?.logger.error(.init(stringLiteral: error.localizedDescription))
+                    return db.eventLoop.future()
                 }
         }.flatten(on: db.eventLoop)
     }
@@ -66,7 +71,11 @@ extension AntonymsParsingServiceImpl: AntonymsParsingService {
                 futures.append(future)
             }
             .onParsingComplete { [weak self] in
-                print("\(Date()): complete parsing antonyms: \($0)\nTotal: \(counter)")
+                self?.logger.info("\(Date()): complete parsing antonyms: \($0)")
+                self?.logger.info("\(Date()): total: \(counter)")
+                let unpersistedAntonymsString = self?.unpersistedAntonyms.map { "\($0)\n" }.reduce("", +)
+                self?.logger.info("\(Date()): unpersisted:\n\(unpersistedAntonymsString ?? "")")
+                
                 switch $0 {
                 case .success:
                     self?.isParsing = false
@@ -75,6 +84,7 @@ extension AntonymsParsingServiceImpl: AntonymsParsingService {
                     self?.isParsing = false
                     promise.completeWith(.failure(error))
                 }
+                self?.unpersistedAntonyms.removeAll()
         }
 
         parser.parse(fileAt: url)

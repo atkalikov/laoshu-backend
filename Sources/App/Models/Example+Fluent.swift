@@ -36,3 +36,9 @@ final class ExampleModel: Model, Content {
         self.example = example.example
     }
 }
+
+extension ExampleModel {
+    var output: Example {
+        .init(original: original, example: example)
+    }
+}

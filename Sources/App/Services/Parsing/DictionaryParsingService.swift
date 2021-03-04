@@ -18,7 +18,7 @@ final class DictionaryParsingServiceImpl {
     private let logger: Logger
     var isParsing: Bool = false
     
-    var unpersistedWords: [String] = []
+    private var unpersistedWords: [String] = []
     
     init(logger: Logger) {
         self.logger = logger
@@ -59,7 +59,8 @@ final class DictionaryParsingServiceImpl {
                             return WordModel(word: word).save(on: db)
                         }
                     }.flatMapError { [weak self] in
-                        self?.logger.error("\($0.localizedDescription)\n\(word.original)")
+                        self?.unpersistedWords.append(word.original)
+                        self?.logger.error(.init(stringLiteral: $0.localizedDescription))
                         return db.eventLoop.future()
                     }
             }

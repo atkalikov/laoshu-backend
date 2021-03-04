@@ -10,6 +10,7 @@ protocol ExamplesParsingService: AnyObject {
 
 final class ExamplesParsingServiceImpl {
     private let logger: Logger
+    private var unpersistedExamples: [Example] = []
     var isParsing: Bool = false
     
     init(logger: Logger) {
@@ -17,9 +18,22 @@ final class ExamplesParsingServiceImpl {
     }
     
     func writeInitial(examples: [Example], on db: Database) -> EventLoopFuture<Void> {
-        examples
-            .map { ExampleModel(example: $0) }
+        let examplesModel = examples.map { ExampleModel(example: $0) }
+            
+        return examplesModel
             .create(on: db)
+            .flatMapError { _ in
+                examplesModel
+                    .map { exampleModel in
+                        exampleModel
+                            .save(on: db)
+                            .flatMapError { [weak self] error in
+                                self?.unpersistedExamples.append(exampleModel.output)
+                                self?.logger.error(.init(stringLiteral: error.localizedDescription))
+                                return db.eventLoop.future()
+                            }
+                    }.flatten(on: db.eventLoop)
+            }
     }
     
     // Too slowly but safety
@@ -31,13 +45,17 @@ final class ExamplesParsingServiceImpl {
                     .filter(\.$original, .equal, example.original)
                     .first()
                     .flatMap {
-                    if let model = $0 {
-                        model.update(example: example)
-                        return model.save(on: db)
-                    } else {
-                        return ExampleModel(example: example).save(on: db)
+                        if let model = $0 {
+                            model.update(example: example)
+                            return model.save(on: db)
+                        } else {
+                            return ExampleModel(example: example).save(on: db)
+                        }
+                    }.flatMapError { [weak self] in
+                        self?.unpersistedExamples.append(example)
+                        self?.logger.error(.init(stringLiteral: $0.localizedDescription))
+                        return db.eventLoop.future()
                     }
-                }
             }
             .flatten(on: db.eventLoop)
     }
@@ -67,7 +85,11 @@ extension ExamplesParsingServiceImpl: ExamplesParsingService {
                 futures.append(future)
             }
             .onParsingComplete { [weak self] in
-                self?.logger.info("\(Date()): complete parsing examples: \($0)\nTotal: \(counter)")
+                self?.logger.info("\(Date()): complete parsing examples: \($0)")
+                self?.logger.info("\(Date()): total: \(counter)")
+                let unpersistedExamplesString = self?.unpersistedExamples.map { "\($0)\n" }.reduce("", +)
+                self?.logger.info("\(Date()): unpersisted:\n\(unpersistedExamplesString ?? ""))")
+                
                 switch $0 {
                 case .success:
                     self?.isParsing = false
@@ -76,6 +98,7 @@ extension ExamplesParsingServiceImpl: ExamplesParsingService {
                     self?.isParsing = false
                     promise.completeWith(.failure(error))
                 }
+                self?.unpersistedExamples.removeAll()
             }
         
         parser.parse(fileAt: url)
